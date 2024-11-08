@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user_document: MzYxNDA3ODE4MzM=
+  credit_card_token: YWJjMTIz
+  value: 890.0
+
+two:
+  user_document: MzI5NDU0MTA1ODM=
+  credit_card_token: eHl6NDU2
+  value: 1000.10
