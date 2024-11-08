@@ -50,3 +50,7 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem 'brakeman', require: false
 end
+
+group :test do
+  gem 'shoulda', '~> 4.0'
+end
