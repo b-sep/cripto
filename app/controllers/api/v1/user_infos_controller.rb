@@ -20,6 +20,8 @@ class Api::V1::UserInfosController < ApplicationController
 
     return render json: @user_info.errors, status: :unprocessable_entity if @user_info.invalid?
 
+    @user_info.save
+
     render json: @user_info.as_json.except('id', 'created_at', 'updated_at'), status: :created
   end
 
