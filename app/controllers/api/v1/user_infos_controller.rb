@@ -2,42 +2,45 @@
 
 class Api::V1::UserInfosController < ApplicationController
   def index
-    @user_infos = UserInfo.all
+    user_infos = UserInfo.all
 
-    render json: @user_infos.as_json.map { |info| info.except('id', 'created_at', 'updated_at') }
+    render json: user_infos.map { UserInfoSerializer.new(_1).as_json }
   end
 
   def show
-    @user_info = UserInfo.find_by(id: params[:id])
+    user_info = UserInfo.find_by(id: params[:id])
 
-    return head :not_found unless @user_info
+    return head :not_found unless user_info
 
-    render json: @user_info.as_json.except('id', 'created_at', 'updated_at')
+    render json: UserInfoSerializer.new(user_info).as_json
   end
 
   def create
-    @user_info = UserInfo.new(user_info_params)
+    user_info = UserInfo.new(user_info_params)
 
-    return render json: @user_info.errors, status: :unprocessable_entity if @user_info.invalid?
-
-    @user_info.save
-
-    render json: @user_info.as_json.except('id', 'created_at', 'updated_at'), status: :created
+    case UserInfoCreateOrUpdate.new(user_info:, params: user_info_params).execute
+    in true  then render json: user_info.as_json.except('id', 'created_at', 'updated_at'), status: :created
+    in false then render json: user_info.errors, status: :unprocessable_entity
+    end
   end
 
   def update
-    @user_info = UserInfo.find_by(id: params[:id])
+    user_info = UserInfo.find_by(id: params[:id])
 
-    return head :not_found unless @user_info
-    return render json: @user_info.errors, status: :unprocessable_entity unless @user_info.update(user_info_params)
+    return head :not_found unless user_info
 
-    render json: @user_info.as_json.except('id', 'created_at', 'updated_at')
+    user_info.assign_attributes(user_info_params)
+
+    case UserInfoCreateOrUpdate.new(user_info:, params: user_info_params).execute
+    in true  then render json: UserInfoSerializer.new(user_info).as_json
+    in false then render json: user_info.errors, status: :unprocessable_entity
+    end
   end
 
   def destroy
-    @user_info = UserInfo.find_by(id: params[:id])
+    user_info = UserInfo.find_by(id: params[:id])
 
-    @user_info.destroy
+    user_info.destroy
   end
 
   private

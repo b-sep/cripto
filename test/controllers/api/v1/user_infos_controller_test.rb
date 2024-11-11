@@ -1,34 +1,46 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'minitest/autorun'
 
+# https://semaphoreci.com/community/tutorials/mocking-in-ruby-with-minitest
 class Api::V1::UserInfosControllerTest < ActionDispatch::IntegrationTest
   test 'gets user infos list' do
+    UserInfo.delete_all
+
+    post api_v1_user_infos_path,
+         params: { user_info: { credit_card_token: 'token111', user_document: '111999', value: 10 } }
+    post api_v1_user_infos_path,
+         params: { user_info: { credit_card_token: 'token222', user_document: '222999', value: 20 } }
     get api_v1_user_infos_path
 
     assert_response :ok
     assert_equal([
       {
-        'user_document' => 'MzI5NDU0MTA1ODM=',
-        'credit_card_token' => 'eHl6NDU2',
-        'value' => 1000.10
+        'credit_card_token' => 'token111',
+        'user_document' => '111999',
+        'value' => 10
       },
       {
-        'user_document' => 'MzYxNDA3ODE4MzM=',
-        'credit_card_token' => 'YWJjMTIz',
-        'value' => 890.0
+        'credit_card_token' => 'token222',
+        'user_document' => '222999',
+        'value' => 20
       }
     ], response.parsed_body)
   end
 
   test 'get user infos' do
-    get api_v1_user_info_path(user_infos(:one))
+    UserInfo.delete_all
+
+    post api_v1_user_infos_path,
+         params: { user_info: { credit_card_token: 'token222', user_document: '222999', value: 10 } }
+    get api_v1_user_info_path(UserInfo.last)
 
     assert_response :ok
     assert_equal({
-                   'user_document' => 'MzYxNDA3ODE4MzM=',
-                   'credit_card_token' => 'YWJjMTIz',
-                   'value' => 890.0
+                   'credit_card_token' => 'token222',
+                   'user_document' => '222999',
+                   'value' => 10
                  }, response.parsed_body)
   end
 
@@ -39,16 +51,18 @@ class Api::V1::UserInfosControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'creates an user info' do
-    assert_difference('UserInfo.count', +1) do
-      post api_v1_user_infos_path,
-           params: { user_info: { credit_card_token: 'token222', user_document: '222999', value: 10 } }
+    Cipher.stub :encrypt, 'encrypted_value' do
+      assert_difference('UserInfo.count', +1) do
+        post api_v1_user_infos_path,
+             params: { user_info: { credit_card_token: 'token222', user_document: '222999', value: 10 } }
 
-      assert_response :created
-      assert_equal({
-                     'user_document' => '222999',
-                     'credit_card_token' => 'token222',
-                     'value' => 10
-                   }, response.parsed_body)
+        assert_response :created
+        assert_equal({
+                       'user_document' => 'encrypted_value',
+                       'credit_card_token' => 'encrypted_value',
+                       'value' => 10
+                     }, response.parsed_body)
+      end
     end
   end
 
@@ -67,15 +81,18 @@ class Api::V1::UserInfosControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'updates user infos' do
-    info = user_infos(:one)
+    UserInfo.delete_all
 
-    put api_v1_user_info_path(info), params: { user_info: { user_document: '000222111000' } }
+    post api_v1_user_infos_path,
+         params: { user_info: { credit_card_token: 'token222', user_document: '222999', value: 10 } }
+
+    put api_v1_user_info_path(UserInfo.last), params: { user_info: { user_document: '000222111000' } }
 
     assert_response :success
     assert_equal({
-                   'user_document' => info.reload.user_document,
-                   'credit_card_token' => info.credit_card_token,
-                   'value' => info.value
+                   'user_document' => '000222111000',
+                   'credit_card_token' => 'token222',
+                   'value' => 10
                  }, response.parsed_body)
   end
 
