@@ -10,14 +10,11 @@
 
 ## Create UserInfos
 
-UserInfo.create!(
-  credit_card_token: '123A0#',
-  user_document: '111.999.000-22',
-  value: 100.0
-)
+params1 = { credit_card_token: 'token111', user_document: '111999', value: 10 }
+user1 = UserInfo.new(params1)
 
-UserInfo.create!(
-  credit_card_token: '223A0#',
-  user_document: '111.888.000-22',
-  value: 120.1
-)
+params2 = { credit_card_token: 'token222', user_document: '222999', value: 20 }
+user2 = UserInfo.new(params2)
+
+UserInfoCreateOrUpdate.new(user_info: user1, params: params1).execute
+UserInfoCreateOrUpdate.new(user_info: user2, params: params2).execute
