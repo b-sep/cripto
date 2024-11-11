@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# based on: https://gist.github.com/yukithm/de7fcba1bea8a997554353e556031b51
 module Cipher
   extend self
 
@@ -12,10 +13,11 @@ module Cipher
     cipher.key = generate_key(salt)
     iv = cipher.random_iv
 
-    "#{salt}#{iv}#{cipher.update(data) + cipher.final}"
+    Base64.strict_encode64("#{salt}#{iv}#{cipher.update(data) + cipher.final}")
   end
 
   def decrypt(encrypted_data)
+    encrypted_data = Base64.strict_decode64(encrypted_data)
     cipher.decrypt
 
     cipher.key = generate_key(encrypted_data.slice(0..15))
